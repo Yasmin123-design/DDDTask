@@ -84,6 +84,7 @@ This command automatically builds our Node API container, spins up MongoDB, down
    - Express server listening on `http://localhost:8000`.
 
 To teardown the container stack:
+
 ```bash
 docker-compose down -v
 ```
@@ -122,6 +123,7 @@ All HTTP response payloads return a unified JSON response schema handled by `Api
 ```
 
 ### 1. Create Post
+
 - **Endpoint**: `POST /api/posts`
 - **Request Headers**: `Content-Type: application/json`
 - **Request Body**:
@@ -145,6 +147,7 @@ All HTTP response payloads return a unified JSON response schema handled by `Api
   ```
 
 ### 2. Get Post by ID
+
 - **Endpoint**: `GET /api/posts/:id`
 - **Response (`200 OK`)**:
   ```json
@@ -160,6 +163,7 @@ All HTTP response payloads return a unified JSON response schema handled by `Api
   ```
 
 ### 3. List All Posts
+
 - **Endpoint**: `GET /api/posts`
 - **Response (`200 OK`)**:
   ```json
@@ -182,6 +186,7 @@ All HTTP response payloads return a unified JSON response schema handled by `Api
 ## ⚡ Event-Driven Flow (Kafka Visual Logs)
 
 When `POST /api/posts` is executed successfully:
+
 1. `CreatePostUseCase` instantiates `Post.create()`, registering `PostCreatedEvent` on the aggregate root.
 2. The post is saved to Mongoose MongoDB.
 3. The use case extracts events via `post.pullDomainEvents()`.
@@ -208,6 +213,7 @@ Post Body  : This post is saved inside MongoDB and successfully published to Kaf
 Deploying a multi-container Docker compose system on the free tier of a Cloud Provider (AWS EC2) is highly secure, fast, and stable.
 
 ### Step 1: Spin up an AWS EC2 Instance
+
 1. Log in to AWS Management Console.
 2. Navigate to **EC2** -> **Launch Instance**.
 3. Choose **Ubuntu Server 22.04 LTS** (eligible for Free Tier, `t2.micro` or `t3.micro`).
@@ -218,43 +224,39 @@ Deploying a multi-container Docker compose system on the free tier of a Cloud Pr
    - Keep MongoDB ports (`27017`) and Kafka ports (`9092`/`29092`) **entirely closed** to the public internet. They only communicate securely inside Docker's virtual network bridge!
 
 ### Step 2: Install Docker and Docker Compose on Ubuntu
+
 Connect to your EC2 instance via SSH:
+
 ```bash
 ssh -i "your-key.pem" ubuntu@your-ec2-public-ip
 ```
 
 Run the installation script:
+
 ```bash
-# Update package list
 sudo apt-get update -y
 
-# Install Docker dependencies
 sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
 
-# Add Docker’s official GPG key
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
 
-# Set up stable Docker repository
 echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
-# Install Docker Engine
 sudo apt-get update -y
 sudo apt-get install -y docker-ce docker-ce-cli containerd.io
 
-# Enable Docker on startup
 sudo systemctl enable docker
 sudo systemctl start docker
 
-# Add Ubuntu user to Docker group (removes sudo requirement for docker commands)
 sudo usermod -aG docker ubuntu
 newgrp docker
 
-# Download and install Docker Compose
 sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 sudo chmod +x /usr/local/bin/docker-compose
 ```
 
 ### Step 3: Clone Code and Boot the Application Stack
+
 1. Clone your GitHub repository on the EC2 server:
    ```bash
    git clone <YOUR_GITHUB_REPO_URL> ddd-backend
@@ -279,39 +281,3 @@ sudo chmod +x /usr/local/bin/docker-compose
    ```
 5. Your REST API is now officially live and publicly accessible at:
    `http://<YOUR_EC2_PUBLIC_IP>:8000`
-
----
-
-## 📁 Submission Assets
-
-1. **Postman Collection**: Located in the root folder as `Posts_API.postman_collection.json`. Import it directly to run the endpoints.
-2. **Docker Compose Orchestration**: Configured completely inside `docker-compose.yml` and optimized in `Dockerfile`.
-
----
-
-## 📹 Video Walkthrough Outline (Voice Guide)
-
-To record a high-scoring 5-minute video, follow this professional narration structure:
-
-1. **Introduction (30s)**:
-   - *"Hello! Today I will show you my DDD-structured, Event-Driven Backend System built on Node.js, Express, MongoDB, Apache Kafka, and Docker."*
-   - Show your IDE workspace.
-2. **Project Architecture explanation (1m 30s)**:
-   - Explain your folders: *Domain*, *Application*, *Infrastructure*, *API*.
-   - Open `domain/entities/post.entity.js` -> show validation rules and `PostCreatedEvent` aggregate registration.
-   - Open `application/use-cases/create-post.usecase.js` -> highlight how it uses abstract interfaces (`IPostRepository` and `IEventPublisher`) showing clean boundary separation.
-   - Open `infrastructure/di/container.js` -> show how Mongoose and Kafka are injected cleanly.
-3. **Show Local Docker-Compose Run (1m)**:
-   - Run `docker-compose up` on your local terminal.
-   - Point out how Zookeeper, Kafka, MongoDB, and API server boot in sequence.
-   - Point out the active listener log: `🎧 [Kafka Consumer] Listening on topic "post-created"`.
-4. **Trigger REST Endpoints via Postman (1m)**:
-   - Open Postman, show the imported collection.
-   - Execute `POST /api/posts` with JSON body payload.
-   - Show the `201 Created` response.
-   - **CRITICAL MOMENT**: Switch immediately to your Docker Compose terminal and highlight the log generated by the background Kafka Consumer capturing the newly published event!
-   - Execute `GET /api/posts` and `GET /api/posts/:id` to show successful retrievals from MongoDB.
-5. **Show Live Deployed System (1m)**:
-   - Open your web browser or Postman and hit `http://<YOUR_EC2_PUBLIC_IP>:8000/`.
-   - Show the successful health check JSON returning public success.
-   - Wrap up: *"The entire stack is containerized and deployed on AWS EC2, isolated securely inside internal network bridges. Thank you!"*

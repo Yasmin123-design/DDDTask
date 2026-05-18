@@ -37,7 +37,7 @@ export async function sendRealPushNotification({ title }) {
           timestamp: new Date().toISOString(),
           footer: {
             text: 'Apache Kafka + Node.js DDD Backend',
-            icon_url: 'https://cdn-icons-png.flaticon.com/512/919/919825.png' // Node.js icon
+            icon_url: 'https://cdn-icons-png.flaticon.com/512/919/919825.png' 
           }
         }
       ]
